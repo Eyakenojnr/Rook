@@ -1,2 +1,3 @@
 # Rook
-This is a RESTful backend API for a Learning Management System (LMS) designed to facilitate online  education
+
+A RESTful backend API for a Learning Management System (LMS) designed to facilitate online education

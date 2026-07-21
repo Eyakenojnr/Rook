@@ -1,13 +1,147 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+datasource db {
+  provider = "postgresql"
+}
 
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
 }
 
-datasource db {
-  provider = "postgresql"
+// Roles Enum
+enum Role {
+  STUDENT
+  INSTRUCTOR
+}
+
+// Users Table
+model User {
+  id           Int          @id @default(autoincrement())
+  name         String       @db.VarChar(100)
+  email        String       @unique @db.VarChar(255)
+  passwordHash String       @map("password_hash") @db.VarChar(255)
+  role         Role
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  courses      Course[] // Created by this user if user is an instructor
+  enrollments  Enrollment[] // Enrolled courses if user is a student
+
+  @@map("users")
+}
+
+// Courses Table
+model Course {
+  id           Int          @id @default(autoincrement())
+  instructorId Int          @map("instructor_id")
+  instructor   User         @relation(fields: [instructorId], references: [id], onDelete: Restrict)
+  title        String       @db.VarChar(255)
+  description  String       @db.Text
+  price        Decimal      @default(0.0) @db.Decimal(10, 2)
+  isPublished  Boolean      @default(false) @map("is_published")
+  thumbnailUrl String?      @map("thumbnail_url") @db.VarChar(255)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  modules      Module[]
+  enrollments  Enrollment[]
+
+  @@index([instructorId])
+  @@map("courses")
+}
+
+// Modules Table
+model Module {
+  id         Int      @id @default(autoincrement())
+  courseId   Int      @map("course_id")
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title      String   @db.VarChar(255)
+  orderIndex Int      @map("order_index")
+  creaetedAt DateTime @default(now()) @map("created_at")
+  lessons    Lesson[]
+
+  @@index([courseId])
+  @@map("modules")
+}
+
+// Lessons Table
+model Lesson {
+  id         Int              @id @default(autoincrement())
+  moduleId   Int              @map("module_id")
+  module     Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  title      String           @db.VarChar(255)
+  content    String?          @db.Text
+  videoUrl   String?          @map("video_url") @db.VarChar(255)
+  orderIndex Int              @map("order_index")
+  createdAt  DateTime         @default(now()) @map("created_at")
+  updatedAt  DateTime         @updatedAt @map("updated_at")
+  progresses LessonProgress[]
+  quizzes    Quiz[]
+
+  @@index([moduleId])
+  @@map("lessons")
+}
+
+// Enrollments Table (Join Table)
+model Enrollment {
+  id          Int              @id @default(autoincrement())
+  studentId   Int              @map("student_id")
+  student     User             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  courseId    Int              @map("courrse_id")
+  course      Course           @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  enrolledAt  DateTime         @default(now()) @map("enrolled_at")
+  progresses  LessonProgress[]
+  certificate Certificate?
+
+  @@unique([studentId, courseId])
+  @@map("enrollments")
+}
+
+// Lesson Progress Table
+model LessonProgress {
+  id           Int        @id @default(autoincrement())
+  enrollmentId Int        @map("enrollment_id")
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  lessonId     Int        @map("lesson_id")
+  lesson       Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  isCompleted  Boolean    @default(true) @map("is_completed")
+  completedAt  DateTime   @default(now()) @map("completed_at")
+
+  @@unique([enrollmentId, lessonId])
+  @@map("lesson_progress")
+}
+
+// Quizzes Table
+model Quiz {
+  id        Int        @id @default(autoincrement())
+  lessonId  Int        @map("lesson_id")
+  lesson    Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  title     String     @db.VarChar(255)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  questions Question[]
+
+  @@map("quizzes")
+}
+
+// Questions Table
+model Question {
+  id                 Int      @id @default(autoincrement())
+  quizId             Int      @map("quiz_id")
+  quiz               Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  questionText       String   @map("question_text") @db.Text
+  options            Json // Maps automatically to JSONB in PostgreSQL
+  correctOptionIndex Int      @map("correct_option_index")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@map("questions")
+}
+
+// Certificates Table
+model Certificate {
+  id             Int        @id @default(autoincrement())
+  enrollmentId   Int        @unique @map("enrollment_id")
+  enrollment     Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  certificateUrl String     @map("certificate_url") @db.VarChar(255)
+  issuedAt       DateTime   @default(now()) @map("issued_at")
+
+  @@map("certificates")
 }

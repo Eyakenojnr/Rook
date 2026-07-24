@@ -13,7 +13,7 @@ app.use(express.urlencoded({ extended: true }));  // Parse incoming URL-encoded 
 
 // Health check route
 app.get('/health', (req, res) => {
-    req.statusCode(200).json({
+    res.status(200).json({
         status: 'success',
         message: 'LMS API is running and healthy.',
         timestamp: new Date().toISOString(),

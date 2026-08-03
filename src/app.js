@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
+import authRoutes from './routes/auth.routes.js';
 
 
 const app = express();
@@ -19,6 +20,8 @@ app.get('/health', (req, res) => {
         timestamp: new Date().toISOString(),
     });
 });
+
+app.use('/api/v1/auth', authRoutes);
 
 // 404 Route handler (runs if no route match the request)
 app.use((req, res, next) => {

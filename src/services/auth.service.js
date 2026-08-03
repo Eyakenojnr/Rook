@@ -21,7 +21,7 @@ export const registerUser = async (name, email, password, role) => {
     }
 
     // Hash password using standard 12 salt rounds
-    const passwordHash = await becrypt.hash(password, 12);
+    const passwordHash = await bcrypt.hash(password, 12);
 
     // Save new user record
     const newUser = await db.user.create({

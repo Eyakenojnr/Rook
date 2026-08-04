@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import authRoutes from './routes/auth.routes.js';
+import courseRoutes from './routes/course.routes.js';
 
 
 const app = express();
@@ -16,12 +17,13 @@ app.use(express.urlencoded({ extended: true }));  // Parse incoming URL-encoded 
 app.get('/health', (req, res) => {
     res.status(200).json({
         status: 'success',
-        message: 'LMS API is running and healthy.',
+        message: 'Rook LMS API is running and healthy.',
         timestamp: new Date().toISOString(),
     });
 });
 
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/courses', courseRoutes);
 
 // 404 Route handler (runs if no route match the request)
 app.use((req, res, next) => {
@@ -32,10 +34,11 @@ app.use((req, res, next) => {
 
 // Global Error Handling middleware
 app.use((err, req, res, next) => {
-    const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+    // Use custom statusCode if present, otherwise default to 500 (Internal Server Error)
+    const statusCode = err.statusCode || 500;
 
     res.status(statusCode).json({
-        status: 'error',
+        status: statusCode >= 500 ? 'error' : 'fail',  // 500 = system 'error', 400s = client 'fail'
         message: err.message || 'Internal Server Error',
         stack: process.env.NODE_ENV === 'production' ? null : err.stack,  // Never leak stack traces to the public in prod.
     });

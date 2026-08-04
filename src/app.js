@@ -4,6 +4,7 @@ import morgan from 'morgan';
 import authRoutes from './routes/auth.routes.js';
 import courseRoutes from './routes/course.routes.js';
 import curriculumRoutes from './routes/curriculum.routes.js';
+import progressRoutes from './routes/progress.routes.js';
 
 
 const app = express();
@@ -26,6 +27,7 @@ app.get('/health', (req, res) => {
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/courses', courseRoutes);
 app.use('/api/v1', curriculumRoutes);
+app.use('/api/v1', progressRoutes);
 
 // 404 Route handler (runs if no route match the request)
 app.use((req, res, next) => {

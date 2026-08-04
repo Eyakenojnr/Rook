@@ -38,13 +38,20 @@ export const enrollInCourse = async (studentId, courseId) => {
     });
 };
 
-// Mark a lesson as complete for an enrolled student
+/**
+ * Marks a lesson as complete for an enrolled student.
+ * Enforces Sequential Locking: Students cannot skip ahead.
+ */
 export const completeLesson = async (studentId, lessonId) => {
+    // Fetch the target lesson, its module ID, orderIndex, and parent course ID
     const lesson = await db.lesson.findUnique({
         where: { id: parseInt(lessonId) },
         include: {
             module: {
-                select: { courseId: true },
+                select: { 
+                    id: true,
+                    courseId: true 
+                },
             },
         },
     });
@@ -66,10 +73,46 @@ export const completeLesson = async (studentId, lessonId) => {
     });
 
     if (!enrollment) {
-        throw new AppError('Access denied. You must be enrolled in this course to complete its lessons.', 403);
+        throw new AppError(
+            'Access denied. You must be enrolled in this course to complete its lessons.',
+            403
+        );
     }
 
-    // Check if this lesson has already been completed (avoid duplicate progress records)
+    // Sequential Locking Check
+    // If this is NOT the first lesson of the module (orderIndex > 1),
+    // they must complete the previous lesson first.
+    if (lesson.orderIndex > 1) {
+        // Query the database to find the lesson immediately preceding this one
+        const previousLesson = await db.lesson.findFirst({
+            where: {
+                moduleId: lesson.moduleId,
+                orderIndex: lesson.orderIndex - 1,
+            },
+        });
+
+        // If a preceding lesson exists, verify that the student has completed it
+        if (previousLesson) {
+            const previousProgress = await db.lessonProgress.findUnique({
+                where: {
+                    enrollmentId_lessonId: {
+                        enrollmentId: enrollment.id,
+                        lessonId: previousLesson.id,
+                    },
+                },
+            });
+
+            // If no completion record is found, block the transaction
+            if (!previousProgress) {
+                throw new AppError(
+                    `Access denied. You must complete the previous lesson "${previousLesson.title}" before starting this one.`,
+                    400
+                );
+            }
+        }
+    }
+
+    // Check if this lesson has already been completed (prevent duplicate database logs)
     const existingProgress = await db.lessonProgress.findUnique({
         where: {
             enrollmentId_lessonId: {
@@ -80,7 +123,7 @@ export const completeLesson = async (studentId, lessonId) => {
     });
 
     if (existingProgress) {
-        return existingProgress; // Return already completed record
+        return existingProgress; // Return existing record
     }
 
     // Create the lesson progress record

@@ -1,5 +1,7 @@
+import crypto from 'crypto';  // generate secure random verification codes
 import { db } from '../config/db.js';
 import AppError from '../utils/appError.js';
+import { generateCertificatePDF } from '../utils/pdfGenerator.js';
 
 
 // Enroll a student in a published course
@@ -39,8 +41,9 @@ export const enrollInCourse = async (studentId, courseId) => {
 };
 
 /**
- * Marks a lesson as complete for an enrolled student.
+ * Mark a lesson as complete for an enrolled student.
  * Enforces Sequential Locking: Students cannot skip ahead.
+ * Triggers automated certificate generation upon reaching 100% course progress.
  */
 export const completeLesson = async (studentId, lessonId) => {
     // Fetch the target lesson, its module ID, orderIndex, and parent course ID
@@ -122,18 +125,65 @@ export const completeLesson = async (studentId, lessonId) => {
         },
     });
 
-    if (existingProgress) {
-        return existingProgress; // Return existing record
+    let progressRecord = existingProgress;
+
+    if (!existingProgress) {
+        // Mark the lesson complete in the database
+        progressRecord = await db.lessonProgress.create({
+            data: {
+                enrollmentId: enrollment.id,
+                lessonId: lesson.id,
+                isCompleted: true,
+            },
+        });
     }
 
-    // Create the lesson progress record
-    return await db.lessonProgress.create({
-        data: {
-            enrollmentId: enrollment.id,
-            lessonId: lesson.id,
-            isCompleted: true,
-        },
-    });
+    const progressMetrics = await getCourseProgress(studentId, courseId);
+
+    let certificate = null;  // automated certificate trigger
+
+    if (progressMetrics.progressPercentage === 100.0) {
+        // Check if a certificate has already been issued for this enrollment (prevent duplicates)
+        const existingCertificate = await db.certificate.findUnique({
+            where: { enrollmentId: enrollment.id },
+        });
+
+        if (existingCertificate) {
+            certificate = existingCertificate;
+        } else {
+            // Fetch metadata needed to generate the certificate
+            const [student, courseDetails] = await Promise.all([
+                db.user.findUnique({ where: { id: studentId }, select: { name: true } }),
+                db.course.findUnique({ where: { id: courseId }, select: { title: true } }),
+            ]);
+
+            // Generate a secure, unique 12-character verification code
+            const certVerificationCode = crypto.randomBytes(6).toString('hex').toUpperCase();
+
+            // Invoke the PDF generation utility
+            const certificateUrl = await generateCertificatePDF(
+                student.name,
+                courseDetails.title,
+                certVerificationCode
+            );
+
+            // save the certificate record
+            certificate = await db.certificate.create({
+                data: {
+                    enrollmentId: enrollment.id,
+                    certificateUrl,
+                },
+            });
+        }
+    }
+
+    // Return the completed progress record alongside certificate metadata (if generated)
+    return {
+        progress: progressRecord,
+        courseCompleted: progressMetrics.progressPercentage === 100.0,
+        progressPercentage: progressMetrics.progressPercentage,
+        certificate,
+    };
 };
 
 // Calculate and retrieve the student's dynamic progress metadata for a course

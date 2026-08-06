@@ -15,6 +15,9 @@ app.use(morgan('dev'));  // HTTP request logger
 app.use(express.json());  // Parse incoming JSON request bodies
 app.use(express.urlencoded({ extended: true }));  // Parse incoming URL-encoded form data
 
+// Static File Serving Middleware: Allows clients to download generated certificates from the public directory
+app.use(express.static('public'));
+
 // Health check route
 app.get('/health', (req, res) => {
     res.status(200).json({

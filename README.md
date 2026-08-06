@@ -18,6 +18,7 @@ This project is built using a **Layered MVC-Service Architecture** to enforce se
 * **Sequential Lesson Locking**: Protects progress integrity by preventing students from skipping ahead in a module; Lesson $N$ cannot be marked complete unless Lesson $N-1$ is verified complete in the database.
 * **Database Mapping Decoupling**: Uses Prisma `@map` and `@@map` decorators to bridge JavaScript naming conventions (`camelCase`) and PostgreSQL naming standards (`snake_case`) cleanly.
 * **"Soft" Authentication**: Used in public endpoints (like loading a course syllabus) to dynamically reveal private details (like lesson video links) only if the requesting user is verified as enrolled or the course instructor, without restricting public access.
+* **Dynamic PDF Certificate Generation:** Automatically triggers when a student's course progress reaches 100%. Uses `pdf-lib` to programmatically draw and center text on a landscape certificate, generates a unique verification code, saves the file to local static storage, and logs the record to PostgreSQL.
 
 ---
 
@@ -28,6 +29,7 @@ This project is built using a **Layered MVC-Service Architecture** to enforce se
 * **Database Engine:** PostgreSQL
 * **ORM:** Prisma 7 (using `@prisma/adapter-pg` driver adapters)
 * **Security:** JSON Web Tokens (JWT) & bcryptjs (password hashing)
+* **PDF Generation:* pdf-lib
 * **Logging:** Morgan
 
 ---
@@ -63,7 +65,7 @@ lms-api/
 
 ### Prerequisites
 * **Node.js** (v18+ recommended)
-* **PostgreSQL** (Installed locally, via WSL, or cloud-hosted on Neon/Supabase)
+* **PostgreSQL** (Installed locally, or cloud-hosted on Neon/Supabase)
 
 ### 1. Installation
 Clone the repository and install the production and development dependencies:
@@ -112,6 +114,7 @@ The server will establish a pool connection to PostgreSQL, execute a database he
 * **Nested Curriculum Builder:** Chronological Module and Lesson generation under courses utilizing single-query join optimizations.
 * **Secure Enrollment Engine:** Student-exclusive course registration backed by composite primary database indexes.
 * **Linear Progress Calculations:** Mathematically precise, non-blocking progress trackers utilizing concurrent SQL aggregations via `Promise.all`.
+* **Automated Certificate Generation:* Instant, on-the-fly landscape A4 PDF certificate generation using `pdf-lib` upon 100% course progress completion. Implements precise text-width centering math and local static file serving with localized `'en-NG'` date formatting.
 
 ---
 
@@ -119,7 +122,6 @@ The server will establish a pool connection to PostgreSQL, execute a database he
 
 The following features represent planned enhancements to transform this core LMS engine into a fully commercialized application:
 
-* **Automated PDF Certificate Generation:** Using `pdf-lib` to overlay dynamic student credentials and course titles over a pre-designed certificate template once progress reaches $100\%$, uploading the output to cloud storage.
 * **Secure Payment Gateway Sandbox:** Integrating Stripe or Paystack sandbox checkout pipelines utilizing secure webhooks to automatically process course enrollments once a purchase clears.
 * **Lesson Q&A Discussion Forum:** Enabling threaded nested commenting systems under individual lessons for students to ask questions and instructors to reply.
 * **Video Streaming Optimizations:** Transitioning from raw video file links to optimized streaming infrastructure (using Cloudinary or AWS S3 signed URLs) to prevent unauthorized distribution of lecture videos.

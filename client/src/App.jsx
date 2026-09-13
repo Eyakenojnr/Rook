@@ -7,17 +7,15 @@ import Register from './pages/Register.jsx';
 // Temporary placeholder for courses catalog
 const CoursesPlaceholder = () => (
   <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-  	<h1 className="text-3xl font-bold text-slate-900">Courses Catalog</h1>
-    <p className="text-slate-500 mt-2">Coming soon</p>
+  	<h1 className="text-3xl font-bold text-slate-900 dark:text-white">Courses Catalog</h1>
+    <p className="text-slate-500 dark:text-slate-400 mt-2">Coming soon</p>
   </div>
 );
-
-console.log('Component audit:', { Router, Routes, Route, Navigate, Navbar, Login, Register });
 
 function App() {
 	return (
 		<Router>
-			<div className='min-h-screen bg-slate-50 font-sans antialiased text-slate-900'>
+			<div className='min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans antialiased transition-colors duration-200'>
 				<Navbar />
 				<main>
 					<Routes>

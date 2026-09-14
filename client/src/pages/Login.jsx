@@ -20,7 +20,7 @@ const Login = () => {
 
 		try {
 			await login(email, password);
-			navigate('/courses');
+			navigate('/courses', { replace: true });  // Replace /login with /courses instead of adding a new entry in history stack
 		} catch (err) {
 			setError(err.response?.data?.message || 'Invalid email or password. Please try again.');
 		} finally {

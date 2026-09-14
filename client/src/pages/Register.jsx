@@ -27,7 +27,7 @@ const Register = () => {
 		setIsSubmitting(true);
 		try {
 			await register(name, email, password, role);
-			navigate('/courses');
+			navigate('/courses', { replace: true });  // Replace /login with /courses instead of adding a new entry in history stack
 		} catch (err) {
 			setError(err.response?.data?.message || 'Registration failed. Please try again.');
 		} finally {

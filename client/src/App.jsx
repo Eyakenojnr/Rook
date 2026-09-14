@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Navbar from './components/Navbar.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
+import GuestRoute from './components/GuestRoute.jsx';
 
 
 // Temporary placeholder for courses catalog
@@ -21,8 +22,11 @@ function App() {
 					<Routes>
 						<Route path="/" element={<Navigate to="/courses" replace />} />
 						<Route path="/courses" element={<CoursesPlaceholder />} />
-						<Route path="/login" element={<Login />} />
-						<Route path="/register" element={<Register />} />
+						{/* Guest-only routes: Authenticated users will be redirected to /courses */}
+						<Route element={<GuestRoute />}>
+							<Route path="/login" element={<Login />} />
+							<Route path="/register" element={<Register />} />
+						</Route>
 						<Route path="*" element={<Navigate to="/courses" replace />} />
 					</Routes>
 				</main>

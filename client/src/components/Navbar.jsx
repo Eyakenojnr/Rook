@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useTheme } from '../context/ThemeContext.jsx';
-import { BookOpen, LogOut, Sun, Moon } from 'lucide-react';
+import RookIcon from './RookIcon.jsx';
+import { LogOut, Sun, Moon } from 'lucide-react';
 
 
 const Navbar = () => {
@@ -13,8 +14,10 @@ const Navbar = () => {
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='flex justify-between h-16 items-center'>
 					{/* Brand Logo */}
-					<Link to="/" className='flex items-center gap-2 text-indigo-600 dark:text-indigo-600 dark:text-indigo-400 font-bold text-xl tracking-tight'>
-						<BookOpen className='w-6 h-6' />
+					<Link to="/"
+						className='flex items-center gap-2 text-indigo-600 dark:text-indigo-600 dark:text-indigo-400 font-bold text-xl tracking-tight'
+					>
+						<RookIcon className='w-6 h-6 text-indigo-600 dark:text-indigo-400' />
 						<span>Rook LMS</span>
 					</Link>
 

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Top battlements with subtle brand fill -->
+  <path d="M4 4h4v3h2V4h4v3h2V4h4v5H4V4z" fill="#4f46e5" fill-opacity="0.15" />
+  
+  <!-- Tapered waist -->
+  <path d="M6 9l1 8h10l1-8" />
+  
+  <!-- Base pedestal with subtle brand fill -->
+  <path d="M4 17h16v3H4z" fill="#4f46e5" fill-opacity="0.25" />
+  
+  <!-- Ground line -->
+  <path d="M3 20h18" />
+</svg>

@@ -3,15 +3,9 @@ import Navbar from './components/Navbar.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import GuestRoute from './components/GuestRoute.jsx';
+import Courses from './pages/Courses.jsx';
+import CourseDetail from './pages/CourseDetail.jsx';
 
-
-// Temporary placeholder for courses catalog
-const CoursesPlaceholder = () => (
-  <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-  	<h1 className="text-3xl font-bold text-slate-900 dark:text-white">Courses Catalog</h1>
-    <p className="text-slate-500 dark:text-slate-400 mt-2">Coming soon</p>
-  </div>
-);
 
 function App() {
 	return (
@@ -21,7 +15,10 @@ function App() {
 				<main>
 					<Routes>
 						<Route path="/" element={<Navigate to="/courses" replace />} />
-						<Route path="/courses" element={<CoursesPlaceholder />} />
+						{/* Live course catalog route */}
+						<Route path="/courses" element={<Courses />} />
+						{/* Course detail / Learning player route */}
+						<Route path='/courses/:id' element={<CourseDetail />} />
 						{/* Guest-only routes: Authenticated users will be redirected to /courses */}
 						<Route element={<GuestRoute />}>
 							<Route path="/login" element={<Login />} />

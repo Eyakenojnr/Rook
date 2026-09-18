@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api.js';
 import { useAuth } from '../context/AuthContext.jsx';
-import RookIcon from '../components/RookIcon.jsx';
 import {
 	Play,
 	CheckCircle,
@@ -26,7 +25,7 @@ const CourseDetail = () => {
 	const [activeLesson, setActiveLesson] = useState(null);
 	const [isEnrolled, setIsEnrolled] = useState(false);
 	const [progress, setProgress] = useState({
-		progressPrecentage: 0,
+		progressPercentage: 0,
 		completedLessonIds: [],
 		totalLessons: 0,
 	});
@@ -46,7 +45,7 @@ const CourseDetail = () => {
 		setErrorBanner(null);
 
 		try {
-			// Fetch syllabus
+			// Fetch course details & syllabus
 			const courseRes = await api.get(`/courses/${courseId}`);
 			const courseData = courseRes.data.data.course;
 			setCourse(courseData);
@@ -60,7 +59,12 @@ const CourseDetail = () => {
 			if (isAuthenticated && isStudent) {
 				try {
 					const progressRes = await api.get(`/courses/${courseId}/progress`);
-					setProgress(progressRes.data.data);
+					const progressData = progressRes.data.data;
+					setProgress({
+						progressPercentage: Number(progressData.progressPercentage || 0),
+						completedLessonIds: progressData.completedLessonIds || [],
+						totalLessons: Number(progressData.totalLessons || 0),
+					});
 					setIsEnrolled(true);
 				} catch (progressErr) {
 					// 403: Student is not yet enrolled
@@ -91,9 +95,29 @@ const CourseDetail = () => {
 		setErrorBanner(null);
 
 		try {
-			await api.post(`/courses/${courseId}/enroll`);
-			setEnrolled(true);
-			await loadCourseData();  // Reload to obtain unlocked video links and progress metrics
+			await api.post(`/courses/${courseId}/enroll`, {});
+			setIsEnrolled(true);
+
+			// Fetch progress and refreshed syllabus concurrently without unmounting into loading skeleton
+			const [refreshedCourseRes, progressRes] = await Promise.all([
+				api.get(`/courses/${courseId}`),
+				api.get(`/courses/${courseId}/progress`),
+			]);
+
+			const refreshedCourse = refreshedCourseRes.data.data.course;
+			setCourse(refreshedCourse);
+
+			const progressData = progressRes.data.data;
+			setProgress({
+				progressPercentage: Number(progressData.progressPercentage || 0),
+				completedLessonIds: progressData.completedLessonIds || [],
+				totalLessons: Number(progressData.totalLessons || 0),
+			});
+
+			// Update active lesson with unlocked video URL
+			if (refreshedCourse.modules?.[0]?.lessons[0]) {
+				setActiveLesson(refreshedCourse.modules[0].lessons[0]);
+			}
 		} catch (err) {
 			setErrorBanner(err.response?.data?.message || 'Enrollment failed. Please try again.');
 		} finally {
@@ -110,16 +134,22 @@ const CourseDetail = () => {
 
 		try {
 			const response = await api.post(`/lessons/${activeLesson.id}/complete`);
-			const { courseCompleted, progressPrecentage, certificate } = response.data.data;
+			const payload = response.data.data.progress?.progressPercentage !== undefined
+				? response.data.data.progress
+				: response.data.data;
+
+			const courseCompleted = payload.courseCompleted;
+			const progressPercentage = Number(payload.progressPercentage || 0);
+			const certificate = payload.certificate;
 
 			// Update local progress state
 			setProgress((prev) => ({
 				...prev,
-				progressPrecentage,
-				completedLessonIds: [...new Set([...prev.completedLessonIds, activeLesson.id])],
+				progressPercentage,
+				completedLessonIds: Array.from(new Set([...prev.completedLessonIds, activeLesson.id])),
 			}));
 
-			// If progress reached 100% & certificate was issued, trigger modal
+			// Trigger celebration modal if completed
 			if (courseCompleted && certificate) {
 				setIssuedCertificate(certificate);
 			}
@@ -292,7 +322,7 @@ const CourseDetail = () => {
 										<span className='text-xs font-semi-bold tracking-wider uppercase text-indigo-600 dark:text-indigo-400'>
 											Lesson {activeLesson.orderIndex}
 										</span>
-										<h2 className='text=xl font-bold text-slate-900 dark:text-white mt-0.5'>
+										<h2 className='text-xs font-bold text-slate-900 dark:text-white mt-0.5'>
 											{activeLesson.title}
 										</h2>
 									</div>

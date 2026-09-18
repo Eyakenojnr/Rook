@@ -18,17 +18,20 @@ export const enrollInCourse = async (req, res, next) => {
     }
 };
 
-// Handle HTTP requests to mark a specific lesson as complete
+/**
+ * Handles marking a lesson complete.
+ * Returns progress metrics and certificate directly under data.
+ */
 export const completeLesson = async (req, res, next) => {
     try {
         const { lessonId } = req.params;
         const studentId = req.user.id;
 
-        const progress = await progressService.completeLesson(studentId, lessonId);
+        const result = await progressService.completeLesson(studentId, lessonId);
 
         res.status(200).json({
             status: 'success',
-            data: { progress },
+            data: result,
         });
     } catch (error) {
         next(error);

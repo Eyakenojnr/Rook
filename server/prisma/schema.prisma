@@ -15,15 +15,16 @@ enum Role {
 
 // Users Table
 model User {
-  id           Int          @id @default(autoincrement())
-  name         String       @db.VarChar(100)
-  email        String       @unique @db.VarChar(255)
-  passwordHash String       @map("password_hash") @db.VarChar(255)
+  id           Int           @id @default(autoincrement())
+  name         String        @db.VarChar(100)
+  email        String        @unique @db.VarChar(255)
+  passwordHash String        @map("password_hash") @db.VarChar(255)
   role         Role
-  createdAt    DateTime     @default(now()) @map("created_at")
-  updatedAt    DateTime     @updatedAt @map("updated_at")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
   courses      Course[] // Created by this user if user is an instructor
   enrollments  Enrollment[] // Enrolled courses if user is a student
+  quizAttempts QuizAttempt[] // Quiz submissions by this student
 
   @@map("users")
 }
@@ -54,7 +55,8 @@ model Module {
   course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   title      String   @db.VarChar(255)
   orderIndex Int      @map("order_index")
-  creaetedAt DateTime @default(now()) @map("created_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
   lessons    Lesson[]
 
   @@index([courseId])
@@ -84,7 +86,7 @@ model Enrollment {
   id          Int              @id @default(autoincrement())
   studentId   Int              @map("student_id")
   student     User             @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  courseId    Int              @map("courrse_id")
+  courseId    Int              @map("course_id")
   course      Course           @relation(fields: [courseId], references: [id], onDelete: Restrict)
   enrolledAt  DateTime         @default(now()) @map("enrolled_at")
   progresses  LessonProgress[]
@@ -110,13 +112,14 @@ model LessonProgress {
 
 // Quizzes Table
 model Quiz {
-  id        Int        @id @default(autoincrement())
-  lessonId  Int        @map("lesson_id")
-  lesson    Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  title     String     @db.VarChar(255)
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime   @updatedAt @map("updated_at")
-  questions Question[]
+  id           Int           @id @default(autoincrement())
+  lessonId     Int           @map("lesson_id")
+  lesson       Lesson        @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  title        String        @db.VarChar(255)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  questions    Question[]
+  quizAttempts QuizAttempt[]
 
   @@map("quizzes")
 }
@@ -144,4 +147,19 @@ model Certificate {
   issuedAt       DateTime   @default(now()) @map("issued_at")
 
   @@map("certificates")
+}
+
+// Quiz Attempts Table
+model QuizAttempt {
+  id          Int      @id @default(autoincrement())
+  quizId      Int      @map("quiz_id")
+  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  studentId   Int      @map("student_id")
+  student     User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  score       Decimal  @db.Decimal(5, 2) // e.g., 85.50 (%)
+  isPassed    Boolean  @map("is_passed")
+  attemptedAt DateTime @default(now()) @map("attempted_at")
+
+  @@index([studentId, quizId])
+  @@map("quiz_attempts")
 }

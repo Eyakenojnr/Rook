@@ -116,6 +116,8 @@ model Quiz {
   lessonId     Int           @map("lesson_id")
   lesson       Lesson        @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   title        String        @db.VarChar(255)
+  passingScore Decimal       @default(70.00) @db.Decimal(5, 2) @map("passing_score")
+  isRequired   Boolean       @default(true) @map("is_required") // Controls assessment gating
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
   questions    Question[]

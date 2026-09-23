@@ -115,6 +115,30 @@ export const completeLesson = async (studentId, lessonId) => {
         }
     }
 
+    // Assessment Gate Guard: Check if this lesson has a quiz attached to it
+    const quiz = await db.quiz.findFirst({
+        where: { lessonId: lesson.id },
+    });
+
+    // If a quiz exists and the instructor marked it as required:
+    if (quiz && quiz.isRequired) {
+        // Check if the student has a passing attempt recorded in the DB
+        const passingAttempt = await db.quizAttempt.findFirst({
+            where: {
+                quizId: quiz.id,
+                studentId,
+                isPassed: true,
+            },
+        });
+
+        if (!passingAttempt) {
+            throw new AppError(
+                `Access denied. You must pass the mandatory quiz "${quiz.title}" with at least ${quiz.passingScore}% before completing this lesson.`,
+                400
+            );
+        }
+    }
+
     // Check if this lesson has already been completed (prevent duplicate database logs)
     const existingProgress = await db.lessonProgress.findUnique({
         where: {
@@ -138,9 +162,10 @@ export const completeLesson = async (studentId, lessonId) => {
         });
     }
 
-    const progressMetrics = await getCourseProgress(studentId, courseId);
+    const progressMetrics = await getCourseProgress(studentId, courseId);  // computes progress metrics
 
-    let certificate = null;  // automated certificate trigger
+    // Automated certificate trigger (if 100%)
+    let certificate = null;
 
     if (progressMetrics.progressPercentage === 100.0) {
         // Check if a certificate has already been issued for this enrollment (prevent duplicates)

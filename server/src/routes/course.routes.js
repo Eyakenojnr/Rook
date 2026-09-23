@@ -36,4 +36,16 @@ courseController.createCourse);
 router.put('/:id', protect, restrictTo('INSTRUCTOR'),
 courseController.updateCourse);
 
+/**
+ * @route   PATCH /api/v1/courses/:id/publish
+ * @desc    Toggle course between Draft and Published
+ * @access  Private (Course owner Instructor only)
+ */
+router.patch(
+    '/:id/publish',
+    protect,
+    restrictTo('INSTRUCTOR'),
+    courseController.togglePublishedCourse
+);
+
 export default router;

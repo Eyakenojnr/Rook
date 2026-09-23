@@ -131,3 +131,24 @@ export const updateCourse = async (req, res, next) => {
         next(error);
     }
 };
+
+
+/**
+ * Handles HTTP requests to toggle course publication status (Draft <-> Published).
+ * Access: Private (Course owner Instructor only)
+ */
+export const togglePublishedCourse = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const instructorId = req.user.id;
+
+        const course = await courseService.togglePublishCourse(id, instructorId);
+
+        res.status(200).json({
+            status: 'success',
+            data: { course },
+        });
+    } catch (error) {
+        next(error);
+    }
+};

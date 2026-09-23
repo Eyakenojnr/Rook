@@ -135,3 +135,63 @@ export const updateCourse = async (courseId, instructorId, updateData) => {
         data: formattedData,
     });
 };
+
+/**
+ * Toggles a course between Draft and Published states.
+ * Enforces ownership and content completeness (must have at least 1 module with lessons)
+ */
+export const togglePublishCourse = async (courseId, instructorId) => {
+    // Fetch course with modules and lessons to verify ownership & readiness
+    const course = await db.course.findUnique({
+        where: { id: parseInt(courseId) },
+        include: {
+            modules: {
+                include: {
+                    lessons: {
+                        select: { id: true },
+                    },
+                },
+            },
+        },
+    });
+
+    if (!course) {
+        throw new AppError('Course not found.', 404);
+    }
+
+    // Ownership check
+    if (course.instructorId !== instructorId) {
+        throw new AppError('Access denied. You do not own this course.', 403);
+    }
+
+    // Business Rule Validation: If publishing (moving from false -> true), verify course has content
+    const willPublish = !course.isPublished;
+
+    if (willPublish) {
+        const totalModules = course.modules.length;
+        const totalLessons = course.modules.reduce((sum, mod) => sum + mod.lessons.length, 0);
+
+        if (totalLessons === 0 || totalModules === 0) {
+            throw new AppError(
+                "Cannot publish an empty course. Add at least one module and one lesson before publishing.",
+                400
+            );
+        }
+    }
+
+    // Toggle the publication state
+    const updatedCourse = await db.course.update({
+        where: { id: parseInt(courseId) },
+        data: {
+            isPublished: willPublish,
+        },
+        select: {
+            id: true,
+            title: true,
+            isPublished: true,
+            updatedAt: true,
+        },
+    });
+
+    return updateCourse;
+};

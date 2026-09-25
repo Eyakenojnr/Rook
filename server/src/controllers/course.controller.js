@@ -152,3 +152,34 @@ export const togglePublishedCourse = async (req, res, next) => {
         next(error);
     }
 };
+
+/**
+ * Handles HTTP requests to upload a course thumbnail image.
+ * Access: Private (Course Owner Instructor only).
+ */
+export const uploadCourseThumbnail = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const instructorId = req.user.id;
+
+        // Fail-early validation: ensures Multer processes a file
+        if (!req.file || !req.file.buffer) {
+            res.status(400);
+            throw new Error("Please select an image file to upload as thumbnail.");
+        }
+
+        // Delegate to service layer
+        const course = await courseService.uploadCourseThumbnail(
+            id,
+            instructorId,
+            req.file.buffer
+        );
+
+        res.status(200).json({
+            status: 'success',
+            data: { course },
+        });
+    } catch (error) {
+        next(error);
+    }
+};

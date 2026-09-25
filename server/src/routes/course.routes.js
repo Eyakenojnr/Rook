@@ -2,6 +2,7 @@ import { Router } from 'express';
 import * as courseController from '../controllers/course.controller.js';
 import { protect } from '../middlewares/auth.middleware.js';
 import { restrictTo } from '../middlewares/role.middleware.js';
+import { uploadThumbnail } from '../middlewares/upload.middleware.js';
 
 
 const router = Router();
@@ -46,6 +47,19 @@ router.patch(
     protect,
     restrictTo('INSTRUCTOR'),
     courseController.togglePublishedCourse
+);
+
+/**
+ * @route   PATCH /api/v1/courses/:id/thumbnail
+ * @desc    Upload an image thumbnail to Cloudinary for a course
+ * @access  Private (Course Owner Instructor only)
+ */
+router.patch(
+    '/:id/thumbnail',
+    protect,
+    restrictTo('INSTRUCTOR'),
+    uploadThumbnail.single('thumbnail'),
+    courseController.uploadCourseThumbnail
 );
 
 export default router;

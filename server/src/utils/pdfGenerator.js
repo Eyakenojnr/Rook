@@ -1,6 +1,5 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import fs from 'fs';
-import path from "path";
+import { uploadBufferToCloudinary } from "./cloudinaryUploader.js";
 
 
 /**
@@ -8,7 +7,7 @@ import path from "path";
  * @param {string} studentName - The full name of the student.
  * @param {string} courseTitle - The title of the completed course.
  * @param {string} certificateId - The unique databse verification ID.
- * @returns {Promise<string>} - The relative public file path of the saved PDF.
+ * @returns {Promise<string>} - Permanent Cloudinary CDN HTTPS URL
  */
 export const generateCertificatePDF = async (studentName, courseTitle, certificateId) => {
     // Create a blank PDF in landscape orientation (Standard A4 dimensions: 842 x 595 points)
@@ -21,7 +20,7 @@ export const generateCertificatePDF = async (studentName, courseTitle, certifica
     const fontHelveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     const fontTimesBoldItalic = await pdfDoc.embedFont(StandardFonts.TimesRomanBoldItalic);
 
-    // Draw a sophisticated background and decorative borders
+    // Draw decorative double borders
     // Outer border => Navy Blue
     page.drawRectangle({
         x: 20,
@@ -58,7 +57,13 @@ export const generateCertificatePDF = async (studentName, courseTitle, certifica
     drawCenteredText(studentName.toUpperCase(), height - 225, 34, fontHelveticaBold, rgb(0.72, 0.53, 0.04));
 
     // Draw fulfillment text
-    drawCenteredText('for successfully completing the curriculum and requirements of the course', height - 200, 12, fontHelvetica, rgb(0.4, 0.4, 0.4));
+    drawCenteredText(
+        'for successfully completing the curriculum and requirements of the course',
+        height - 200,
+        12,
+        fontHelvetica,
+        rgb(0.4, 0.4, 0.4)
+    );
 
     // Draw Course Title (times bold italic)
     drawCenteredText(`"${courseTitle}"`, height - 340, 24, fontTimesBoldItalic, rgb(0.12, 0.23, 0.35));
@@ -90,18 +95,18 @@ export const generateCertificatePDF = async (studentName, courseTitle, certifica
         color: rgb(0.3, 0.3, 0.3),
     });
 
-    // Compile and save the PDF bytes to local disk storage
+    // Save PDF to bytes and convert to Node.js Buffer
     const pdfBytes = await pdfDoc.save();
+    const pdfBuffer = Buffer.from(pdfBytes);
 
-    // Create "public/certificates" directory path
-    const dirPath = path.resolve('public/certificates');
-    if (!fs.existsSync(dirPath)) {
-        fs.mkdirSync(dirPath, { recursive: true });  // Ensures directories are created recursively
-    }
+    // Stream buffer directly to Cloudinary as a raw PDF asset
+    const cloudUrl = await uploadBufferToCloudinary(pdfBuffer, {
+        folder: 'rook_lms/certificates',
+        resource_type: 'raw',
+        public_id: `cert_${certificateId}`,
+        format: 'pdf',
+    });
 
-    const filePath = path.join(dirPath, `cert_${certificateId}.pdf`);
-    fs.writeFileSync(filePath, pdfBytes);
-
-    // Return public URI that is stored in the database
-    return `/certificates/cert_${certificateId}.pdf`;
+    // Return permanent, production-ready Cloudinary CDN HTTPS URL
+    return cloudUrl;
 };

@@ -1,5 +1,6 @@
 import AppError from '../utils/appError.js';
 import { db } from '../config/db.js';
+import { uploadBufferToCloudinary } from '../utils/cloudinaryUploader.js';
 
 
 /**
@@ -194,4 +195,44 @@ export const togglePublishCourse = async (courseId, instructorId) => {
     });
 
     return updateCourse;
+};
+
+/**
+ * Uploads a course thumbnail image to Cloudinary and updates the database record.
+ * Enforces course ownership and applies automatic 16:9 resizing.
+ */
+export const uploadCourseThumbnail = async (courseId, instructorId, fileBuffer) =>{
+    // Fetch course to verify existence and ownership
+    const course = await db.course.findUnique({
+        where: { id: parseInt(courseId) },
+    });
+
+    if (!course) {
+        throw new AppError('Course not found.', 404);
+    }
+
+    if (course.instructorId !== instructorId) {
+        throw new AppError('Access denied. You not own this course.', 403);
+    }
+
+    // Stream buffer to Cloudinary with automatic 16:9 cropping and optimization
+    const thumbnailUrl = await uploadBufferToCloudinary(fileBuffer, {
+        folder: 'rook_lms/thumbnails',
+        transformation: [
+            { width: 1280, height: 720, crop: 'fill', gravity: 'auto' },
+            { fetch_format: 'auto', quality: 'auto' },
+        ],
+    });
+
+    // Update course record with the permanent Cloudinary HTTPS URL
+    return await db.course.update({
+        where: { id: parseInt(courseId) },
+        data: { thumbnailUrl },
+        select: {
+            id: true,
+            title: true,
+            thumbnailUrl: true,
+            updatedAt: true,
+        },
+    });
 };

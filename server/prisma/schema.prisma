@@ -13,6 +13,13 @@ enum Role {
   INSTRUCTOR
 }
 
+// Payment status Enum
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
 // Users Table
 model User {
   id           Int           @id @default(autoincrement())
@@ -25,6 +32,7 @@ model User {
   courses      Course[] // Created by this user if user is an instructor
   enrollments  Enrollment[] // Enrolled courses if user is a student
   quizAttempts QuizAttempt[] // Quiz submissions by this student
+  payments     Payment[]
 
   @@map("users")
 }
@@ -43,6 +51,7 @@ model Course {
   updatedAt    DateTime     @updatedAt @map("updated_at")
   modules      Module[]
   enrollments  Enrollment[]
+  payments     Payment[]
 
   @@index([instructorId])
   @@map("courses")
@@ -116,7 +125,7 @@ model Quiz {
   lessonId     Int           @map("lesson_id")
   lesson       Lesson        @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   title        String        @db.VarChar(255)
-  passingScore Decimal       @default(70.00) @db.Decimal(5, 2) @map("passing_score")
+  passingScore Decimal       @default(70.00) @map("passing_score") @db.Decimal(5, 2)
   isRequired   Boolean       @default(true) @map("is_required") // Controls assessment gating
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
@@ -164,4 +173,22 @@ model QuizAttempt {
 
   @@index([studentId, quizId])
   @@map("quiz_attempts")
+}
+
+// Payments Table
+model Payment {
+  id        Int           @id @default(autoincrement())
+  reference String        @unique @db.VarChar(100)
+  amount    Decimal       @db.Decimal(10, 2)
+  currency  String        @default("NGN") @db.VarChar(10)
+  status    PaymentStatus @default(PENDING)
+  studentId Int           @map("student_id")
+  student   User          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  courseId  Int           @map("course_id")
+  course    Course        @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  @@index([studentId, courseId])
+  @@map("payments")
 }

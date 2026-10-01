@@ -194,7 +194,7 @@ export const togglePublishCourse = async (courseId, instructorId) => {
         },
     });
 
-    return updateCourse;
+    return updatedCourse;
 };
 
 /**

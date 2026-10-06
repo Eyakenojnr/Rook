@@ -1,4 +1,5 @@
 import * as authService from '../services/auth.service.js';
+import AppError from '../utils/appError.js';
 
 
 // Handle HTTP requests for user registration.
@@ -7,19 +8,16 @@ export const register = async (req, res, next) => {
         const { name, email, password, role } = req.body;
 
         if (!name || !email || !password || !role) {
-            res.status(422);
-            throw new Error('All fields (name, email, password, role) are required.');
+            throw new AppError('All fields (name, email, password, role) are required.', 422);
         }
 
         if (password.length < 8) {
-            res.status(422);
-            throw new Error('Password must be at least 8 characters long.');
+            throw new AppError('Password must be at least 8 characters long.', 422);
         }
 
         const normalizedRole = role.toUpperCase();
         if (normalizedRole !== 'STUDENT' && normalizedRole !== 'INSTRUCTOR') {
-            res.status(422);
-            throw new Error('Role must be either STUDENT or INSTRUCTOR');
+            throw new AppError('Role must be either STUDENT or INSTRUCTOR', 422);
         }
 
         const result = await authService.registerUser(name, email, password, normalizedRole);
@@ -38,8 +36,7 @@ export const login = async (req, res, next) => {
         const { email, password } = req.body;
 
         if (!email || !password) {
-            res.status(400);
-            throw new Error('Email and password are required.');
+            throw new AppError('Email and password are required.', 400);
         }
 
         const result = await authService.loginUser(email, password);

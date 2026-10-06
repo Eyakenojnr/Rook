@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from 'jsonwebtoken';
 import { db } from "../config/db.js";
+import AppError from "../utils/appError.js";
 
 
 // Helper function to sign a secure JWT
@@ -17,7 +18,7 @@ export const registerUser = async (name, email, password, role) => {
     // Check if user already exists
     const existingUser = await db.user.findUnique({ where: { email } });
     if (existingUser) {
-        throw new Error("An account with this email already exists.");
+        throw new AppError("An account with this email already exists.", 400);
     }
 
     // Hash password using standard 12 salt rounds
@@ -45,13 +46,13 @@ export const loginUser = async (email, password) => {
     // Find the user via email
     const user = await db.user.findUnique({ where: { email } });
     if (!user) {
-        throw new Error("Invalid email or password.");
+        throw new AppError("Invalid email or password.", 400);
     }
 
     // Verify password against the stored bcrypt hash
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
-        throw new Error("Invalid email or password.");
+        throw new AppError("Invalid email or password.", 400);
     }
 
     const token = generateToken(user.id, user.role);

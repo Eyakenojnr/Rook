@@ -4,8 +4,14 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/prisma/index.js';
 
 
+// Auto-switch database target during automated testing
+let connectionString = process.env.DATABASE_URL;
+if (process.env.NODE_ENV === 'test' && connectionString) {
+    connectionString = connectionString.replace(/\/rook_db(\?|$)/, '/rook_test_db$1');
+}
+
 const pool = new pg.Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString,
 });
 
 const adapter = new PrismaPg(pool);

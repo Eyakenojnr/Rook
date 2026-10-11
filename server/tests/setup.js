@@ -8,6 +8,8 @@ const TEST_EMAILS = [
     'duplicate@example.com',
     'unregistered@example.com',
     'instructor@example.com',
+    'progress_student@example.com',
+    'progress_instructor@example.com',
 ];
 
 /**
@@ -16,7 +18,29 @@ const TEST_EMAILS = [
  */
 export const cleanDatabase = async () => {
     try {
-        // Delete test courses first to satisfy onDelete: Restrict
+        // Delete test enrollments (removes FK lock on courses)
+        await db.enrollment.deleteMany({
+            where: {
+                student: { email: { in: TEST_EMAILS } },
+            },
+        });
+
+        // Delete test payments and certificates
+        await db.payment.deleteMany({
+            where: {
+                student: { email: { in: TEST_EMAILS } },
+            },
+        });
+
+        await db.certificate.deleteMany({
+            where: {
+                enrollment: {
+                    student: { email: { in: TEST_EMAILS } }
+                },
+            },
+        });
+
+        // Delete test courses (no enrollments or payments reference them)
         await db.course.deleteMany({
             where: {
                 instructor: {

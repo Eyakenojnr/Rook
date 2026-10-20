@@ -10,6 +10,8 @@ const TEST_EMAILS = [
     'instructor@example.com',
     'progress_student@example.com',
     'progress_instructor@example.com',
+    'payment_student@example.com',
+    'payment_instructor@example.com',
 ];
 
 /**

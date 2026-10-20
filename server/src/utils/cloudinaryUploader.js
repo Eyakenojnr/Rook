@@ -10,6 +10,14 @@ import AppError from './appError.js';
  * @returns {Promise<string>} - Resolves with the secure HTTPS URL
  */
 export const uploadBufferToCloudinary = (buffer, options = {}) => {
+    // Fake Storage Adapter for automated tests
+    if (process.env.NODE_ENV === 'test') {
+        const resourceType = options.resource_type || 'image';
+        return Promise.resolve(
+            `https://res.cloudinary.com/mock_cloud/${resourceType}/upload/v1/rook_lms/mock_asset.pdf`
+        );
+    }
+    
     return new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
             {

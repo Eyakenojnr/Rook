@@ -18,4 +18,11 @@ router.post('/register', authController.register);
  */
 router.post('/login', authController.login);
 
+/**
+ * @route   POST /api/v1/auth/logout
+ * @desc    Client logout acknowledgment
+ * @access  Public / Stateless
+ */
+router.post('/logout', authController.logout);
+
 export default router;

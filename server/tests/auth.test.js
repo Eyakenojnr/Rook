@@ -109,4 +109,14 @@ describe('Auth Integration Tests (POST /api/v1/auth)', () => {
             expect(response.body.message).toMatch(/invalid email or password/i);
         });
     });
+
+    describe('POST /api/v1/auth/logout', () => {
+    it('should return 200 OK confirming logout', async () => {
+      const response = await request(app).post('/api/v1/auth/logout');
+
+      expect(response.status).toBe(200);
+      expect(response.body.status).toBe('success');
+      expect(response.body.message).toMatch(/logged out successfully/i);
+    });
+  });
 });

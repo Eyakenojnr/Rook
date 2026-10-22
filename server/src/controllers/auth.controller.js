@@ -49,3 +49,14 @@ export const login = async (req, res, next) => {
         next(error);
     }
 };
+
+/**
+ * Handles user logout.
+ * Stateless convention: Confirms session termination for API clients.
+ */
+export const logout = async (req, res) => {
+    res.status(200).json({
+        status: 'success',
+        message: 'Logged out successfully.',
+    });
+};

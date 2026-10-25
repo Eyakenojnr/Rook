@@ -5,6 +5,8 @@ import Register from './pages/Register.jsx';
 import GuestRoute from './components/GuestRoute.jsx';
 import Courses from './pages/Courses.jsx';
 import CourseDetail from './pages/CourseDetail.jsx';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
+import Profile from './pages/Profile.jsx';
 
 
 function App() {
@@ -15,10 +17,18 @@ function App() {
 				<main>
 					<Routes>
 						<Route path="/" element={<Navigate to="/courses" replace />} />
+						
 						{/* Live course catalog route */}
 						<Route path="/courses" element={<Courses />} />
+
 						{/* Course detail / Learning player route */}
 						<Route path='/courses/:id' element={<CourseDetail />} />
+
+						{/* Authenticated-only routes */}
+						<Route element={<ProtectedRoute />}>
+							<Route path='/profile' element={<Profile />} />
+						</Route>
+
 						{/* Guest-only routes: Authenticated users will be redirected to /courses */}
 						<Route element={<GuestRoute />}>
 							<Route path="/login" element={<Login />} />

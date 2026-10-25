@@ -12,6 +12,8 @@ const TEST_EMAILS = [
     'progress_instructor@example.com',
     'payment_student@example.com',
     'payment_instructor@example.com',
+    'profile_student@example.com',
+    'profile_instructor@example.com',
 ];
 
 /**

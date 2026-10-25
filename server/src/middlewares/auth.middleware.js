@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { db } from '../config/db.js';
+import AppError from '../utils/appError.js';
 
 
 /**
@@ -18,9 +19,9 @@ export const protect = async (req, res, next) => {
             token = req.headers.authorization.split(' ')[1];
         }
 
+        // Fail early
         if (!token) {
-            res.status(401);  // Unauthorized
-            throw new Error('Not authorized. No session token provided.');
+            throw new AppError('Not authorized. No session token provided.', 401);
         }
 
         // Verify token signature
@@ -38,8 +39,7 @@ export const protect = async (req, res, next) => {
         });
 
         if (!currentUser) {
-            res.status(401);
-            throw new Error('The user belonging to this token no longer exists.');
+            throw new AppError('The user belonging to this token no longer exists.', 401);
         }
 
         req.user = currentUser;
@@ -47,12 +47,10 @@ export const protect = async (req, res, next) => {
     } catch (error) {
         // Handling of specific JWT errors
         if (error.name === 'TokenExpiredError') {
-            res.status(401);
-            return next(new Error('Your session has expired. Please log in again.'));
+            return next(new AppError('Your session has expired. Please log in again.', 401));
         }
         if (error.name === 'JsonWebTokenError') {
-            res.status(401);
-            return next(new Error('Invalid session token. Authentication failed.'));
+            return next(new AppError('Invalid session token. Authentication failed.', 401));
         }
 
         next(error);

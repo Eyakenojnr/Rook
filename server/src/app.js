@@ -7,6 +7,7 @@ import curriculumRoutes from './routes/curriculum.routes.js';
 import progressRoutes from './routes/progress.routes.js';
 import quizRoutes from './routes/quiz.routes.js';
 import paymentRoutes from './routes/payment.routes.js';
+import userRoutes from './routes/user.routes.js';
 
 
 const app = express();
@@ -32,6 +33,7 @@ app.use('/api/v1', curriculumRoutes);
 app.use('/api/v1', progressRoutes);
 app.use('/api/v1', quizRoutes);
 app.use('/api/v1', paymentRoutes);
+app.use('/api/v1/users', userRoutes);
 
 // 404 Route handler (runs if no route match the request)
 app.use((req, res, next) => {

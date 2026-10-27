@@ -42,8 +42,13 @@ export const AuthProvider = ({ children }) => {
     };
 
     // Register handler
-    const register = async (name, email, password, role) => {
-        const response = await api.post('/auth/register', { name, email, password, role });
+    const register = async (namePayload, email, password, role) => {
+        const payload =
+            typeof namePayload === 'object'
+                ? { ...namePayload, email, password, role }
+                : { name: namePayload, email, password, role };
+
+        const response = await api.post('/auth/register', payload);
         const { user: userData, token: jwtToken } = response.data.data;
 
         setUser(userData);

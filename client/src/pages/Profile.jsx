@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { formatName, getAvatarInitials } from '../utils/formatters.js';
 import { Link } from 'react-router-dom';
 import api from '../services/api.js';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -150,17 +151,12 @@ const Profile = () => {
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 mb-8 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-full bg-indigo-600 dark:bg-indigo-500 text-white font-bold flex items-center justify-center text-xl shadow-sm">
-            {user.name
-              .split(' ')
-              .map((n) => n[0])
-              .join('')
-              .substring(0, 2)
-              .toUpperCase()}
+            {getAvatarInitials(user.name)}
           </div>
           <div>
             <div className="flex items-center gap-2.5">
               <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
-                {user.name}
+                {formatName(user.name)}
               </h1>
               <span
                 className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${

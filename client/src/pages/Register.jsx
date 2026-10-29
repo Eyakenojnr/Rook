@@ -58,7 +58,12 @@ const Register = () => {
 				password,
 				role
 			);
-			navigate('/courses', { replace: true });  // Replace /login with /courses instead of adding a new entry in history stack
+
+			// Navigate to login with success flash state
+			navigate('/login', {
+				replace: true,
+				state: { successMessage: 'Account created successfully. Please sign in with your credentials.'},
+			});
 		} catch (err) {
 			setError(err.response?.data?.message || 'Registration failed. Please try again.');
 		} finally {
@@ -119,7 +124,7 @@ const Register = () => {
 					<div className="grid grid-cols-2 gap-3">
 						<div>
 							<label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-								First Name *
+								First Name<span className="text-rose-500 font-bold text-sm leading-none ml-0.5">*</span>
 							</label>
 							<input
 								type="text"
@@ -132,7 +137,7 @@ const Register = () => {
 						</div>
 						<div>
 							<label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-								Last Name *
+								Last Name<span className="text-rose-500 font-bold text-sm leading-none ml-0.5">*</span>
 							</label>
 							<input
 								type="text"
@@ -162,7 +167,7 @@ const Register = () => {
 					{/* Email address */}
 					<div>
 						<label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-							Email Address *
+							Email Address<span className="text-rose-500 font-bold text-sm leading-none ml-0.5">*</span>
 						</label>
 						<div className="relative">
 							<Mail className="w-4 h-4 text-slate-400 dark:text-slate-400 absolute left-3 top-3" />
@@ -180,7 +185,7 @@ const Register = () => {
 					{/* Password with visibility toggle */}
 					<div>
 						<label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-							Password (min. 8 characters) *
+							Password (min. 8 characters)<span className="text-rose-500 font-bold text-sm leading-none ml-0.5">*</span>
 						</label>
 						<div className="relative">
 							<Lock className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3 top-3" />

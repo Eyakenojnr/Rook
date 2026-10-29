@@ -49,15 +49,7 @@ export const AuthProvider = ({ children }) => {
                 : { name: namePayload, email, password, role };
 
         const response = await api.post('/auth/register', payload);
-        const { user: userData, token: jwtToken } = response.data.data;
-
-        setUser(userData);
-        setToken(jwtToken);
-
-        localStorage.setItem('rook_token', jwtToken);
-        localStorage.setItem('rook_user', JSON.stringify(userData));
-
-        return userData;
+        return response.data.data;
     };
 
     // Logout handler
